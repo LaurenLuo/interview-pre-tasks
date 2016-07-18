@@ -16,16 +16,13 @@ window.$Suggest = function (element, config) {
         bindEvent(this);
     };
     function init(that) {//初始化
-        console.log("init");
         that.config = $.extend({}, that.defaultConfig, config)
     }
     function bindEvent(that) {
-        console.log("bind");
         $(element).bind('keyup',function (e) {
             if(e.which==13){
                 //回车提交搜索
                 var keyword=$(this).val();
-                console.log(e.which+keyword);
                 window.location.href='https://www.baidu.com/s?wd='+keyword+'&tn=sitehao123&ie=utf-8'
             };
             if(((e.which >= 48) && (e.which <= 57))
@@ -34,37 +31,12 @@ window.$Suggest = function (element, config) {
                 || ((e.which >= 109) && (e.which <= 111))
                 || ((e.which >= 186) && (e.which <= 222))
                 ||(e.which==8)){//输入值时，调用搜索推荐接口
-                console.log("e"+e.which);
-                // that.config.onChange;//不知道为什么这里调用config配置里面的onChange函数不行
-                var keyword=$(this).val();
-                console.log("change");
-                var request = {
-                    'wd': keyword,
-                    'tn': 'sitehao123',
-                    'ie': 'utf-8',
-                    'cb': 'showUl',
-                    't': new Date().getMilliseconds().toString()
-                };
-                $.ajax({
-                    async: false,
-                    url: 'https://www.baidu.com/su',
-                    type: 'GET',
-                    dataType: 'jsonp',
-                    jsonp: 'cb',
-                    data: request,
-                    timeout: 5000,
-                    success: function (data) {
-                        showUl(data);
-                    },
-                    error: function (data) {
-                    }
-                });
+                that.config.onChange(this);
             }
         });
     }
-    function onchange() {
-        var keyword=$(this).val();
-        console.log("change");
+    function onchange(that) {
+        var keyword=$(that).val();
         var request = {
             'wd': keyword,
             'tn': 'sitehao123',
@@ -73,7 +45,6 @@ window.$Suggest = function (element, config) {
             't': new Date().getMilliseconds().toString()
         };
         $.ajax({
-            async: false,
             url: 'https://www.baidu.com/su',
             type: 'GET',
             dataType: 'jsonp',
@@ -98,15 +69,15 @@ window.$Suggest = function (element, config) {
         $(document.body).append(suggestList);
 
         var suggestData = data['s'];//获取异步数据
-        console.log(suggestData);
-
-        var html = '<ul>';
-        html+='<li class="liColor">' + suggestData[0] + '</li>';
-        for (var i = 1; i < suggestData.length; i++) {
-            html += '<li>' + suggestData[i] + '</li>';
+        if(suggestData.length>0){
+            var html = '<ul>';
+            html+='<li class="liColor">' + suggestData[0] + '</li>';
+            for (var i = 1; i < suggestData.length; i++) {
+                html += '<li>' + suggestData[i] + '</li>';
+            }
+            html += '</ul>';
         }
-        html += '</ul>';
-
+        
         suggestList.html(html);
         suggestList.show().css({
             top: $(element).offset().top + $(element).height() * 1.5,
